@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Tymon\JWTAuth\Contracts\JWTSubject;
+
 class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -48,7 +49,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return $this->getKey();
     }
-      /**
+    /**
      * Return a key value array, containing any custom claims to be added to the JWT.
      *
      * @return array
@@ -56,5 +57,20 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [];
+    }
+    static public function checkEmail($email)
+    {
+        return self::select('users.*')
+            ->where('email', '=', $email)
+            ->first();
+        // Add the where condition
+    }
+    public function sentMessages()
+    {
+        return $this->hasMany(ChatPrivateModel::class, 'user_send_id');
+    }
+    public function receivedMessages()
+    {
+        return $this->hasMany(ChatPrivateModel::class, 'user_receiver_id');
     }
 }

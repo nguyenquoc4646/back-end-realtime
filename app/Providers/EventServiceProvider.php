@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use App\Events\ForgotPasswordEvent;
+use App\Events\UserRegisterSuccessEvent;
+use App\Listeners\SendMailForgotPasswordListener;
+use App\Listeners\UserRegisterSuccessListener;
+use App\Listeners\VerifyEmailAfterUserRegisterSuccess;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -18,6 +24,13 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
+        UserRegisterSuccessEvent::class=>[
+            VerifyEmailAfterUserRegisterSuccess::class,
+        ],
+        ForgotPasswordEvent::class=>[
+            SendMailForgotPasswordListener::class,
+        ],
+        
     ];
 
     /**
