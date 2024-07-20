@@ -13,7 +13,7 @@ return [
      * Your API domain. By default, app domain is used. This is also a part of the default API routes
      * matcher, so when implementing your own, make sure you use this config if needed.
      */
-    'api_domain' => 'http://127.0.0.1:8000',
+    'api_domain' => '',
 
     /*
      * The path where your OpenAPI specification will be exported.

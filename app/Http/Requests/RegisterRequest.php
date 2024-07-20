@@ -22,10 +22,26 @@ class RegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required',
-                'confirm_password' => 'required|same:password',
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required',
+            'confirm_password' => 'required|same:password',
+        ];
+    }
+    public function messages()
+    {
+        return [
+            'name.required' => 'Tên là trường bắt buộc.',
+            'name.string' => 'Tên phải là chuỗi.',
+            'name.max' => 'Tên không được vượt quá :max ký tự.',
+            'email.required' => 'Email là trường bắt buộc.',
+            'email.string' => 'Email phải là chuỗi.',
+            'email.email' => 'Email không hợp lệ.',
+            'email.max' => 'Email không được vượt quá :max ký tự.',
+            'email.unique' => 'Email đã được sử dụng.',
+            'password.required' => 'Mật khẩu là trường bắt buộc.',
+            'confirm_password.required' => 'Xác nhận mật khẩu là trường bắt buộc.',
+            'confirm_password.same' => 'Xác nhận mật khẩu phải giống với mật khẩu đã nhập.',
         ];
     }
 }

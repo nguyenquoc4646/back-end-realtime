@@ -190,7 +190,6 @@ class UserController extends Controller
     {
         $id = base64_decode($id);
         $user = User::find($id);
-        $user = User::find($id);
         if (!empty($user)) {
             $user->email_verified_at =  Carbon::now();
             $user->save();

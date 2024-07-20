@@ -9,6 +9,7 @@ use App\Models\GroupMemberModel;
 use App\Models\User;
 use App\Traits\AuthenticatesLogin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class GroupController extends Controller
 {
@@ -45,34 +46,46 @@ class GroupController extends Controller
      */
     public function store(GroupRequest $request)
     {
-        $groupChat = new GroupChatModel;
 
-        if (!empty($request->leader_id)) {
+        DB::beginTransaction();
+        
+        try{
+            $groupChat = new GroupChatModel;
+            if ($request->has('leader_id') && !empty($request->leader_id)) {
 
-            $groupChat->name_group = $request->name_group;
-            $groupChat->leader_id = $request->leader_id;
-            $groupChat->save();
+                $groupChat->name_group = $request->name_group;
+                $groupChat->leader_id = $request->leader_id;
+                $groupChat->save();
+            }
+            $newGroupId = $groupChat->id;
+            foreach ($request->members as $member_id) {
+                $groupMembers = new GroupMemberModel;
+                $groupMembers->group_chat_id = $newGroupId;
+                $groupMembers->member_id = $member_id;
+              $groupMembers->save();
+               
         }
-
-        $newGroupId = $groupChat->id;
-        foreach ($request->members as $member_id) {
-            $groupMembers = new GroupMemberModel;
-            $groupMembers->group_chat_id = $newGroupId;
-            $groupMembers->member_id = $member_id;
-            $groupMembers->save();
-        }
-        if ($groupMembers) {
+         DB::commit();
             return response()->json([
                 'success' => 'Success create group',
                 'message' => "Tạo nhóm thành công",
                 'groupChat' => $groupChat
             ], 200);
-        } else {
+        
+       ;
+        
+        
+            
+        }catch(\Exception $e){
+            DB::rollBack();
             return response()->json([
-                'error' => 'Error create group',
-                'message' => 'Tạo nhóm không thành công'
-            ], 500);
+                'error' => 'Error cannot create group. Lỗi'.$e->getMessage(),
+                'message' => "Lỗi, không thể tạo nhóm",
+                'groupChat' => $groupChat
+            ], 500); 
         }
+            
+      
     }
 
     /**
@@ -80,17 +93,34 @@ class GroupController extends Controller
      */
     public function show(string $id)
     {
-        $groupChat = GroupChatModel::with('leader') // Load thông tin của leader
-            ->findOrFail($id); // Tìm theo ID của nhóm
-        // Lấy danh sách các thành viên trong nhóm
-        $members = $groupChat->members()->with('user')->get();
+        
 
-        // Tạo một mảng response JSON
-        return response()->json([
-            'success' => 'Success get data',
-            'groupChat' => $groupChat,
-            'members' => $members,
-        ]);
+        $groupChat = GroupChatModel::with('leader') // Load thông tin của leader
+            ->find($id); // Tìm theo ID của nhóm
+        if (empty($groupChat)) {
+            return response()->json([
+                'error' => 'Error not found group',
+                'groupChat' => [],
+                'members'=>[],
+                'message'=>"Nhóm không tồn tại"
+            
+            ],404);  
+        }else{
+            $members = $groupChat->members()->with('user')->get();
+            if(!$members->isEmpty()){
+                return response()->json([
+                    'success' => 'Success get data infor group and group members ',
+                    'groupChat' => $groupChat,
+                    'members' => $members,
+                ],200);
+            }else{
+                return response()->json([
+                    'error' => 'Error not found group members',
+                    'groupChat' => $groupChat,
+                    'members' => [],
+                ],404);
+            }
+        }
     }
 
     /**
@@ -100,13 +130,13 @@ class GroupController extends Controller
     {
         $groupChat = GroupChatModel::with('leader') // Load thông tin của leader
             ->findOrFail($id); // Tìm theo ID của nhóm
-     
+
         if (empty($groupChat)) {
             return response()->json([
                 'error' => "Group Not found",
                 'message' => "Nhóm không tồn tại",
                 'groupChat' => [],
-            ],404);
+            ], 404);
         } else {
             $members = $groupChat->members()->with('user')->get();
             return response()->json([
@@ -114,14 +144,14 @@ class GroupController extends Controller
                 'message' => "Lấy dữ liệu thành công",
                 'groupChat' => $groupChat,
                 'members' => $members,
-            ]);
+            ],200);
         }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(GroupRequest $request, string $id)
+    public function update(Request $request, string $id)
     {
         $groupChat = GroupChatModel::find($id);
 
