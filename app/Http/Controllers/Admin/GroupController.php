@@ -22,14 +22,14 @@ class GroupController extends Controller
         $groupChats = GroupChatModel::getAll();
         if (!empty($groupChats)) {
             return response()->json([
-                'success' => 'Success get list data account',
+                'success' => 'Success get list data groups',
                 'groupChats' => $groupChats
-            ]);
+            ],200);
         } else {
             return response()->json([
-                'error' => 'Data not found',
-                'message' => 'Không có dữ liệu'
-            ]);
+                'error' => 'Error group not found',
+                'message' => 'Không tìm thấy nhóm nào'
+            ],404);
         }
     }
 
@@ -71,11 +71,7 @@ class GroupController extends Controller
                 'message' => "Tạo nhóm thành công",
                 'groupChat' => $groupChat
             ], 200);
-        
-       ;
-        
-        
-            
+       
         }catch(\Exception $e){
             DB::rollBack();
             return response()->json([
@@ -93,8 +89,6 @@ class GroupController extends Controller
      */
     public function show(string $id)
     {
-        
-
         $groupChat = GroupChatModel::with('leader') // Load thông tin của leader
             ->find($id); // Tìm theo ID của nhóm
         if (empty($groupChat)) {
@@ -133,7 +127,7 @@ class GroupController extends Controller
 
         if (empty($groupChat)) {
             return response()->json([
-                'error' => "Group Not found",
+                'error' => "Error group Not found",
                 'message' => "Nhóm không tồn tại",
                 'groupChat' => [],
             ], 404);
