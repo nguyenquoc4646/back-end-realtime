@@ -1,0 +1,8 @@
+1.
+ - thống kê số lượng tài khoản
+ - thống kê tổng số tin nhắn cả nhóm và private
+ - thống kê tổng số nhóm
+ - thống kê thành viên trung bình của 1 nhóm
+2. thống kê Số lượng người dùng đăng nhập vào hệ thống trong một khoảng thời gian cụ thể (ngày, tuần, tháng).
+3. thống kê lượng tin nhắn được gửi đi theo khung giờ (Biểu đồ)
+4. thống kê người dùng gửi tin nhắn nhiều nhất (top 10)

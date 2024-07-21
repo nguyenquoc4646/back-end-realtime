@@ -24,12 +24,12 @@ class GroupController extends Controller
             return response()->json([
                 'success' => 'Success get list data groups',
                 'groupChats' => $groupChats
-            ],200);
+            ], 200);
         } else {
             return response()->json([
                 'error' => 'Error group not found',
-                'message' => 'Không tìm thấy nhóm nào'
-            ],404);
+                'message' => 'Danh sách nhóm trống'
+            ], 404);
         }
     }
 
@@ -48,8 +48,8 @@ class GroupController extends Controller
     {
 
         DB::beginTransaction();
-        
-        try{
+
+        try {
             $groupChat = new GroupChatModel;
             if ($request->has('leader_id') && !empty($request->leader_id)) {
 
@@ -62,26 +62,22 @@ class GroupController extends Controller
                 $groupMembers = new GroupMemberModel;
                 $groupMembers->group_chat_id = $newGroupId;
                 $groupMembers->member_id = $member_id;
-              $groupMembers->save();
-               
-        }
-         DB::commit();
+                $groupMembers->save();
+            }
+            DB::commit();
             return response()->json([
                 'success' => 'Success create group',
                 'message' => "Tạo nhóm thành công",
                 'groupChat' => $groupChat
             ], 200);
-       
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
-                'error' => 'Error cannot create group. Lỗi'.$e->getMessage(),
+                'error' => 'Error cannot create group. Lỗi' . $e->getMessage(),
                 'message' => "Lỗi, không thể tạo nhóm",
                 'groupChat' => $groupChat
-            ], 500); 
+            ], 500);
         }
-            
-      
     }
 
     /**
@@ -95,24 +91,24 @@ class GroupController extends Controller
             return response()->json([
                 'error' => 'Error not found group',
                 'groupChat' => [],
-                'members'=>[],
-                'message'=>"Nhóm không tồn tại"
-            
-            ],404);  
-        }else{
+                'members' => [],
+                'message' => "Nhóm không tồn tại"
+
+            ], 404);
+        } else {
             $members = $groupChat->members()->with('user')->get();
-            if(!$members->isEmpty()){
+            if (!$members->isEmpty()) {
                 return response()->json([
                     'success' => 'Success get data infor group and group members ',
                     'groupChat' => $groupChat,
                     'members' => $members,
-                ],200);
-            }else{
+                ], 200);
+            } else {
                 return response()->json([
                     'error' => 'Error not found group members',
                     'groupChat' => $groupChat,
                     'members' => [],
-                ],404);
+                ], 404);
             }
         }
     }
@@ -138,7 +134,7 @@ class GroupController extends Controller
                 'message' => "Lấy dữ liệu thành công",
                 'groupChat' => $groupChat,
                 'members' => $members,
-            ],200);
+            ], 200);
         }
     }
 
@@ -148,33 +144,59 @@ class GroupController extends Controller
     public function update(Request $request, string $id)
     {
         $groupChat = GroupChatModel::find($id);
-
-        if (!empty($groupChat)) {
-            if (!empty($request->leader_id)) {
-                $groupChat->name_group = $request->name_group;
-                $groupChat->leader_id = $request->leader_id;
-                $groupChat->save();
-            }
-            $newGroupId = $groupChat->id;
-        }
-        foreach ($request->members as $member_id) {
-            $groupMembers = new GroupMemberModel;
-            $groupMembers->group_chat_id = $newGroupId;
-            $groupMembers->member_id = $member_id;
-            $groupMembers->save();
-        }
-        if ($groupMembers) {
-            return response()->json([
-                'success' => 'Success update group',
-                'message' => "Cập nhật thành công",
-                'groupChat' => $groupChat
-            ], 200);
-        } else {
+        $errors = [];
+        if (empty($groupChat)) {
             return response()->json([
                 'error' => 'Error update group',
-                'message' => 'Cập nhật không thành công'
-            ], 500);
+                'message' => 'Không tìm thấy nhóm để cập nhật'
+            ], 404);
         }
+        if (!empty($request->nameGroup)) {
+            $groupChat->name_group = $request->nameGroup;
+        } else {
+            $errors[] = 'Tên nhóm bắt buộc nhập';
+        }
+
+        if (!empty($request->leaderId)) {
+            $leader = User::where('id',$request->leaderId)->get();
+            if (!empty($leader)) {
+                $groupChat->leader_id = $request->leaderId;
+            } else {
+                $errors[] = 'Nhóm trưởng không tồn tại';
+            }
+        } else {
+            $errors[] = 'Nhóm trưởng không để trống';
+        };
+
+        $groupChat->save();
+        // Lấy id của nhóm chat mới sau khi cập nhật
+        $newGroupId = $groupChat->id;
+        if (!empty($request->members)) {
+            foreach ($request->members as $member_id) {
+                $member = User::find($member_id);
+                if (!$member) {
+                    $errors[] = 'Người dùng không tồn tại: ' . $member_id;
+                    continue; // Bỏ qua và tiếp tục vòng lặp
+                }
+                $groupMembers = new GroupMemberModel;
+                $groupMembers->group_chat_id = $newGroupId;
+                $groupMembers->member_id = $member_id;
+                $groupMembers->save();
+            }
+        } else {
+            $errors[] = 'Cần ít nhất 1 thành viên';
+        }
+        if (!empty($errors)) {
+            return response()->json([
+                'error' => 'Error update group',
+                'message' => implode(', ', $errors)
+            ], 400);
+        }
+        return response()->json([
+            'success' => 'Success update group',
+            'message' => 'Cập nhật thành công',
+            'groupChat' => $groupChat
+        ], 200);
     }
 
     /**

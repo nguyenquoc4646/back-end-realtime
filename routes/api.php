@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\GroupController;
 use App\Http\Controllers\Admin\UserController;
@@ -27,10 +28,11 @@ use Symfony\Component\HttpKernel\DependencyInjection\RegisterControllerArgumentL
 // });
 
 
-Route::apiResource('users', UserController::class);
-Route::apiResource('groups',GroupController::class);
-Route::get('/groups/{id}/edit', [GroupController::class,'edit']);
-Route::get('/users/{id}/edit', [UserController::class, 'edit']);
+Route::apiResource('admin/users', UserController::class);
+Route::apiResource('admin/groups',GroupController::class);
+Route::get('admin/dashboard', [AdminDashboardController::class,'index']);
+Route::get('admin/groups/{id}/edit', [GroupController::class,'edit']);
+Route::get('admin/users/{id}/edit', [UserController::class, 'edit']);
 Route::post('register', [AuthController::class,'register']);
 Route::post('login', [AuthController::class,'login']);
 Route::post('/users/forgot-password',[UserController::class,'forgotPassword']);
@@ -48,4 +50,7 @@ Route::get('/chat-private/{idUserReciever}', [ChatPrivateController::class,'chat
 Route::post('/send-message-private', [ChatPrivateController::class,'messagePrivate']);
 Route::get('/chat-group/{idGroup}', [ChatGroupController::class,'chatGroup']);
 Route::post('/send-message-group', [ChatGroupController::class,'messageGroup']);
+
+// thống kê
+
 

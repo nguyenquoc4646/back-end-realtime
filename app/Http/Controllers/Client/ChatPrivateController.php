@@ -19,45 +19,40 @@ class ChatPrivateController extends Controller
     {
         $messagePrivate = PrivateMessageModel::getMessagesPrivate($idUserReciever);
         $userReceiver = User::find($idUserReciever);
-        $users = User::where('id', '<>', Auth::user()->id)->get();
-        if (!empty($userReceiver)) {
+        if (empty($userReceiver)) {
             return response()->json([
-                'success' => "Success get data chat",
-                
-                'listUsers'=>$users,
-                'messagePrivate' => $messagePrivate,
-            ],200);
-        } else {
-            return response()->json([
-                'error' => "Error not found user receiver",
-                'userReciever' => []
-            ],404);
+                'error' => "Error: User receiver not found",
+                'userReciever' => null
+            ], 404);
         }
+
+        $users = User::where('id', '<>', Auth::user()->id)->get();
+
+        return response()->json([
+            'success' => "Success: Data chat retrieved successfully",
+            'listUsers' => $users,
+            'messagePrivate' => $messagePrivate,
+        ], 200);
     }
 
     public function messagePrivate(Request $request)
     {
         $messagePrivate = new PrivateMessageModel;
-        if (!empty($request->idUserReciever) && !empty($request->message)) {
+        $userReceiver = User::find($request->idUserReciever);
+        if (!empty($userReceiver) && !empty($request->message)) {
             $messagePrivate->user_send_id  = Auth::user()->id;
             $messagePrivate->user_receiver_id = $request->idUserReciever;
             $messagePrivate->message = $request->message;
             $messagePrivate->save();
-            if (broadcast(new ChatPrivateEvent($request->user(), User::find($request->idUserReciever), $request->message))) {
-                return response()->json([
-                    'success' => "Success send message",
-                    'message' => 'Gửi tin nhắn thành công'
-                ], 200);
-            } else {
-                return response()->json([
-                    'error' => "error server or not connection",
-                    'message' => "Lỗi hệ thống, vui lòng thử lại sau"
-                ], 500);
-            }
+            broadcast(new ChatPrivateEvent($request->user(), User::find($request->idUserReciever), $request->message));
+            return response()->json([
+                'success' => "Success send message",
+                'message' => 'Gửi tin nhắn thành công'
+            ], 200);
         } else {
             return response()->json([
-                'error' => "Error not found receiver or dont exits content",
-                'message' => "Người nhận không tồn tại hoặc không có nội dung"
+                'error' => "Error: Not found receiver or empty content",
+                'message' => "Người nhận không tồn tại hoặc nội dung tin nhắn"
             ], 404);
         }
     }

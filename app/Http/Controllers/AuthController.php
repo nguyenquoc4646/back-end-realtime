@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\UserLogginEvent;
 use App\Events\UserRegisterSuccessEvent;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
@@ -52,8 +53,9 @@ class AuthController extends Controller
                 'error' => "Error account not verify",
                 'message' => 'Tài khoản chưa được xác minh, vui lòng kiểm tra email',
             ], 404);
+        }else{
+            UserLogginEvent::dispatch($user);
         }
-        
             return $this->respondWithToken($token);
      
        
@@ -78,7 +80,7 @@ class AuthController extends Controller
             return response()->json([
                 'error' => "Error register",
                 'message' => 'Mật khẩu không khớp',
-            ],404);
+            ],400);
         }
     }
 
@@ -169,10 +171,5 @@ class AuthController extends Controller
             ], 404);
         }
     }
-
-    public function chatPrivate($idUser){
-        return response()->json('Đây là chat private');
-    }
-
     
 }

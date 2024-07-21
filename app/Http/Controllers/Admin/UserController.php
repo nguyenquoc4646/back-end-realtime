@@ -33,7 +33,7 @@ class UserController extends Controller
         } else {
             return response()->json([
                 'error' => "Error get data account",
-                'message' => 'Không tồn tại dữ liệu',
+                'message' => 'Danh sách tài khoản trống',
                 'data' => []
             ], 404);
         }
@@ -246,7 +246,7 @@ class UserController extends Controller
                 return response()->json([
                     'error'=>'Error confirm password mismatched',
                     'message'=>'Mật khẩu không khớp'
-                ],404);
+                ],400);
             }
         }else{
             return response()->json([

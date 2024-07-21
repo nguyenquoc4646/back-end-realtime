@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Events\ForgotPasswordEvent;
+use App\Events\UserLogginEvent;
 use App\Events\UserRegisterSuccessEvent;
 use App\Listeners\SendMailForgotPasswordListener;
+use App\Listeners\UserLoginListener;
 use App\Listeners\UserRegisterSuccessListener;
 use App\Listeners\VerifyEmailAfterUserRegisterSuccess;
 use Illuminate\Auth\Events\Login;
@@ -30,6 +32,9 @@ class EventServiceProvider extends ServiceProvider
         ForgotPasswordEvent::class=>[
             SendMailForgotPasswordListener::class,
         ],
+        UserLogginEvent::class=>[
+            UserLoginListener::class
+        ]
         
     ];
 
